@@ -1,13 +1,17 @@
 #!/usr/bin/env python3.7
 
 import requests
-from contextlib import closing
+import math
 from bs4 import BeautifulSoup, SoupStrainer
+
+from contextlib import closing
 
 import os
 import sys
 import random
 import json
+from datetime import timedelta, date, datetime
+
 
 site = "http://xwordinfo.com/"
 
@@ -26,9 +30,31 @@ months = {
     "December":12
 }
 
-def scrape_puzzle(mdy=None):
+def scrape_puzzle(mdy=None): #Split this into multiple functions rather than blockboi
     #Check pre-era
-    page = BeautifulSoup(requests.get(site + "Crossword?date=6/13/2019").text, "html.parser")
+    extension = "Crossword?date="
+
+    if mdy is None: #Need try-catch block to see if puzzle has come out yet, switch dt -> dt - 1 (not sure how to handle this yet)
+        d = datetime.today()
+
+        cday = str(d.day) if d.day >= 10 else str(d.day)[1:]
+        cmonth = str(d.month)
+        cyear = str(d.year)
+        mdy = cmonth + "/" + cday + "/" + cyear
+    else:
+        mdy_year = int(mdy[mdy.rfind("/")+1:])
+        mdy_month = int(mdy[:mdy.find("/")])
+        mdy_day = int(mdy[mdy.find("/")+1:mdy.rfind("/")])
+
+        if mdy_year < 1993 or (mdy_year == 1993 and mdy_month < 11): #Not full check, don't have net to check the exact date
+            extension = "PS?date="
+        else:
+            pass
+
+    #Also need check if pre-1942 to handle non-existent puzzles!
+
+    page = BeautifulSoup(requests.get(site + extension + mdy).text, "html.parser")
+
 
     puzzle = page.find("table", id="PuzTable")
     title = page.find("h1", id="PuzTitle")
@@ -47,7 +73,7 @@ def scrape_puzzle(mdy=None):
         for elem in row:
             if elem != "\n":
                 cell_text = str(elem.text)
-
+                #Need to handle special chars like oo squares on themed games
                 if len(cell_text) > 1:
                     cells.append(
                         {
@@ -74,8 +100,8 @@ def scrape_puzzle(mdy=None):
                     )
                 col_v += 1
         row_v += 1
-        print("END ROW")
-    print(cells.__len__()) #Crosswords always square, sqrt this should be row/col count
+        # print("END ROW")
+    print() #Crosswords always square, sqrt this should be row/col count
 
     across_clues = []
     down_clues = []
@@ -102,25 +128,29 @@ def scrape_puzzle(mdy=None):
     date_parts = str(title.text).split(",")
     weekday = date_parts[1].strip()
 
-    date = date_parts[2].strip().split()
-    month = months[date[0]]
-    day = date[1]
+    ddate = date_parts[2].strip().split()
+    month = months[ddate[0]]
+    day = ddate[1]
 
     puzzle_date = str(month) + "/" + str(day) + "/" + date_parts[-1].strip()
-    print(puzzle_date)
 
     puzzle_json = {
         "board":cells,
         "across_clues":across_clues,
         "down_clues":down_clues,
         "weekday":weekday,
-        "date":puzzle_date
+        "date":puzzle_date,
+        "size":int(math.sqrt(cells.__len__()))
     }
 
-    print(puzzle_json)
+    # with open(os.path.join("..", "data", "puzzle.json"), "w+") as p:
+    #     json.dump(puzzle_json, p)
 
 if __name__ == "__main__":
-    scrape_puzzle()
-    pass
+    if len(sys.argv) == 2:
+        scrape_puzzle(sys.argv[1])
+    else:
+        scrape_puzzle()
+
 
 
