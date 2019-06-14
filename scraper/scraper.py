@@ -57,7 +57,10 @@ def scrape_puzzle(mdy=None): #Split this into multiple functions rather than blo
 
 
     puzzle = page.find("table", id="PuzTable")
-    title = page.find("h1", id="PuzTitle")
+
+    header = page.find("h1", id="PuzTitle")
+    subtitle = page.find("h2", id="CPHContent_SubTitle")
+
     clues = page.find_all("div", "numclue")
 
     value = None
@@ -73,32 +76,35 @@ def scrape_puzzle(mdy=None): #Split this into multiple functions rather than blo
         col_v = 0
         for elem in row:
             if elem != "\n":
-                cell_text = str(elem.text)
-                #Need to handle special chars like oo squares on themed games
-                if len(cell_text) > 1:
-                    cells.append(
-                        {
-                            "row":row_v,
-                            "column":col_v,
-                            "marker":cell_text[:-1],
-                            "value":cell_text[-1]
-                        }
-                    )
-                elif len(cell_text) == 1:
-                    cells.append(
-                        {
-                            "row": row_v,
-                            "column": col_v,
-                            "value": cell_text
-                        }
-                    )
+                cell_dict = {
+                    "row":row_v,
+                    "column":col_v
+                }
+
+                special_value = elem.findChildren("div", {'class', 'subst'})
+                value = elem.findChildren("div", {'class', 'letter'})
+                marker = elem.findChildren("div", {'class', 'num'})
+
+                if len(marker) != 0:
+                    if len(marker[0].text) > 0:
+                        cell_dict["marker"] = marker[0].text
+
+                if len(special_value) != 0:
+                    cell_dict["value"] = special_value[0].text
+                    cell_dict["rebus"] = True
+                elif len(value) != 0:
+                    cell_dict["value"] = value[0].text
                 else:
-                    cells.append(
-                        {
-                            "row": row_v,
-                            "column": col_v,
-                        }
-                    )
+                    cell_dict["wall"] = True
+
+                if elem.get('class') is not None:
+                    if 'bigcircle' in elem.get('class'):
+                        cell_dict["circled"] = True
+                    if 'bigshade' in elem.get('class'):
+                        cell_dict['shaded'] = True
+
+                cells.append(cell_dict)
+
                 col_v += 1
         row_v += 1
         # print("END ROW")
@@ -126,7 +132,11 @@ def scrape_puzzle(mdy=None): #Split this into multiple functions rather than blo
                 else:
                     down_clues.append(clue)
 
-    date_parts = str(title.text).split(",")
+    if subtitle is None:
+        date_parts = str(header.text).split(",")
+    else:
+        date_parts = str(subtitle.text).split(",")
+
     weekday = date_parts[1].strip()
 
     ddate = date_parts[2].strip().split()
@@ -137,19 +147,22 @@ def scrape_puzzle(mdy=None): #Split this into multiple functions rather than blo
 
     puzzle_json = {
         "board":cells,
+        "size":int(math.sqrt(cells.__len__())),
         "across_clues":across_clues,
         "down_clues":down_clues,
         "weekday":weekday,
         "date":puzzle_date,
-        "size":int(math.sqrt(cells.__len__()))
     }
 
-    # with open(os.path.join("..", "data", "puzzle.json"), "w+") as p:
-    #     json.dump(puzzle_json, p)
+    if subtitle is not None:
+        puzzle_json["title"] = header.text
+
+    with open(os.path.join(os.path.dirname(__file__), "..", "data", "puzzle.json"), "w+") as p:
+        json.dump(puzzle_json, p)
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        scrape_puzzle(sys.argv[1])
+        scrape_puzzle(str(sys.argv[1]))
     else:
         scrape_puzzle()
 

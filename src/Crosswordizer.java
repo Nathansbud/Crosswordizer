@@ -173,13 +173,21 @@ public class Crosswordizer extends PApplet {
         }
     }
 
-    public static void main(String[] args) {
+    private static void scrapePuzzle() {
+        scrapePuzzle("");
+    }
+
+    private static void scrapePuzzle(String date) {
         try {
-            Runtime.getRuntime().exec("/Users/zackamiton/Code/Crosswordizer/scraper/scraper.py");
-        } catch(IOException e) {
+            Process scrape = Runtime.getRuntime().exec("/Users/zackamiton/Code/Crosswordizer/scraper/scraper.py " + date);
+            scrape.waitFor(); //Make sure file exists and main thread halts to avoid accessing the file until then
+        } catch(IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
 
+    public static void main(String[] args) {
+        scrapePuzzle();
         condLoadPuzzle(); //Load board
         for(int i = 0; i < board.getSize()*board.getSize(); i++) {
             System.out.println(board.getTile(i).getCorrectValue());
