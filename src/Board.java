@@ -35,6 +35,28 @@ public class Board {
     }
     public void setSize(int _size) {
         size = _size;
+        tiles = new Tile[size][size];
+    }
+
+    public Tile[][] getTiles() {
+        return tiles;
+    }
+    public void setTiles(Tile[][] _tiles) {
+        tiles = _tiles;
+    }
+
+    public Tile getTile(int x, int y) {
+        return tiles[x][y];
+    }
+    public void setTile(int x, int y, Tile t) {
+        tiles[x][y] = t;
+    }
+
+    public Tile getTile(int index) {
+        return tiles[index / size][index % size];
+    }
+    public void setTile(int index, Tile t) {
+        tiles[index / size][index % size] = t;
     }
 
     public ArrayList<Clue> getDownClues() {

@@ -70,6 +70,7 @@ def scrape_puzzle(mdy=None): #Split this into multiple functions rather than blo
     cells = []
 
     for row in puzzle_index:
+        col_v = 0
         for elem in row:
             if elem != "\n":
                 cell_text = str(elem.text)
@@ -79,8 +80,8 @@ def scrape_puzzle(mdy=None): #Split this into multiple functions rather than blo
                         {
                             "row":row_v,
                             "column":col_v,
-                            "number":cell_text[:-1],
-                            "letter":cell_text[-1]
+                            "marker":cell_text[:-1],
+                            "value":cell_text[-1]
                         }
                     )
                 elif len(cell_text) == 1:
@@ -88,7 +89,7 @@ def scrape_puzzle(mdy=None): #Split this into multiple functions rather than blo
                         {
                             "row": row_v,
                             "column": col_v,
-                            "letter": cell_text
+                            "value": cell_text
                         }
                     )
                 else:
@@ -115,7 +116,7 @@ def scrape_puzzle(mdy=None): #Split this into multiple functions rather than blo
                 split_index = prompt.rfind(":") #Formatting on site is that a colon delimits q from a
 
                 clue = {
-                    "number":value,
+                    "marker":value,
                     "question":prompt[:split_index-1],
                     "answer":prompt[split_index+2:]
                 }

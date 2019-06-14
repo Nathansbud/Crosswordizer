@@ -4,10 +4,11 @@ public class Clue {
         DOWN()
     }
 
-    private int number;
     private Direction direction;
+
     private String question;
     private String answer;
+    private String marker;
 
     public Clue() {
 
@@ -16,11 +17,11 @@ public class Clue {
         direction = _direction;
     }
 
-    public int getNumber() {
-        return number;
+    public String getMarker() {
+        return marker;
     }
-    public void setNumber(int _number) {
-        number = _number;
+    public void setMarker(String _number) {
+        marker = _number;
     }
 
     public String getQuestion() {
