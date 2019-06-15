@@ -18,14 +18,16 @@ public class Tile {
 
     private boolean special = false;
 
-
-    private int markerSize = 12;
-    private int valueSize = 16;
+    private static int markerSize = 12;
+    private static int valueSize = 15;
 
     private boolean wall;
     private boolean circled;
     private boolean shaded;
     private boolean rebus; //Handle weird crossword puzzle tiles ("oo") for themed puzzles
+
+    private boolean horizontal;
+    private boolean vertical;
 
     public Tile() {
 
@@ -33,7 +35,7 @@ public class Tile {
 
     public static void setStatics() {
         setGui(Crosswordizer.getApp());
-        setSideLength(gui.width/36.0f);
+        setSideLength(gui.width/48.0f);
     }
 
     public void setup() {
@@ -53,6 +55,12 @@ public class Tile {
         if(!isSelected()) {
             gui.strokeWeight(1);
             gui.stroke(0);
+        } else if(horizontal) {
+            gui.strokeWeight(2);
+            gui.stroke(255, 0, 0);
+        } else if(vertical) {
+            gui.strokeWeight(2);
+            gui.stroke(0, 255, 0);
         } else {
             gui.strokeWeight(2);
             gui.stroke(0, 0, 255);
@@ -77,15 +85,15 @@ public class Tile {
         if(hasCurrentValue()) {
             if(isCorrect() && isRebus()) {
                 gui.fill(255, 0, 0);
-            } else if(isCorrect()) {
-//                gui.fill(0, 255, 0); //Prob shouldn't do this!
             } else {
                 gui.fill(0);
             }
 
             gui.textSize(valueSize);
-            gui.text(currentValue, (2*x + sideLength)/2.0f - 0.5f*gui.textWidth(currentValue), (2*y + sideLength)/2.0f+0.1f*valueSize, x + sideLength, y + sideLength);
+            gui.text(currentValue, (2*x + sideLength)/2.0f - 0.5f*gui.textWidth(currentValue), y + 0.3f*sideLength, x + sideLength, y + sideLength);
         }
+
+        gui.textSize(12);
     }
 
     public static Tile getSelected() {
@@ -218,17 +226,17 @@ public class Tile {
         y = _y;
     }
 
-    public int getMarkerSize() {
+    public static int getMarkerSize() {
         return markerSize;
     }
-    public void setMarkerSize(int _markerSize) {
+    public static void setMarkerSize(int _markerSize) {
         markerSize = _markerSize;
     }
 
-    public int getValueSize() {
+    public static int getValueSize() {
         return valueSize;
     }
-    public void setValueSize(int _valueSize) {
+    public static void setValueSize(int _valueSize) {
         valueSize = _valueSize;
     }
 

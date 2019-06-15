@@ -21,7 +21,7 @@ public class Crosswordizer extends PApplet {
     public void setup() {
         Board.setStatics();
         Tile.setStatics();
-        
+
         board.setup();
     }
     @Override
@@ -32,7 +32,7 @@ public class Crosswordizer extends PApplet {
 
     @Override
     public void keyPressed() {
-        System.out.println(keyCode);
+//        System.out.println(keyCode);
         if(Tile.hasSelected()) {
             int currentIndex;
             int changeIndex;
@@ -148,6 +148,7 @@ public class Crosswordizer extends PApplet {
             b.setSize(Integer.parseInt(String.valueOf(checkedGet(puzzleData, "size"))));
             b.setDate((String)checkedGet(puzzleData, "date"));
             b.setWeekday((String)checkedGet(puzzleData, "weekday")); //Checked gets for futureproofing
+            b.setTitle((String)checkedGet(puzzleData, "title"));
 
             Object[] clueSet = new Object[]{puzzleData.get("down_clues"), puzzleData.get("across_clues")};
             int count = 0;
@@ -227,10 +228,8 @@ public class Crosswordizer extends PApplet {
         return app;
     }
 
-
-
     public static void main(String[] args) {
-        scrapePuzzle();
+        scrapePuzzle("1/20/2008");
         loadPuzzle();
 
         PApplet.runSketch(new String[]{"Crossword"}, app);

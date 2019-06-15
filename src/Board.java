@@ -9,6 +9,7 @@ public class Board {
 
     private String date;
     private String weekday;
+    private String title;
 
     private Tile[][] tiles;
 
@@ -34,19 +35,46 @@ public class Board {
     }
 
     public void draw() {
-        for(Tile[] tls : tiles) {
-            for(Tile t : tls) {
+        for (Tile[] tls : tiles) {
+            for (Tile t : tls) {
                 t.draw();
             }
         }
-        if(Tile.hasSelected()) {
+        if (Tile.hasSelected()) {
             Tile.getSelected().draw();
         }
+        gui.fill(0);
+        gui.fill(16);
+
+        if(hasTitle()) gui.text(title, (size)*Tile.getSideLength()/2.0f - 0.5f*gui.textWidth(title), (size+1)*Tile.getSideLength());
+        gui.text(weekday + ", " + date, (size)*Tile.getSideLength()/2.0f - 0.5f*gui.textWidth(weekday + ", " + date), (size+1.5f)*Tile.getSideLength());
+
+        gui.textSize(12);
+
+        int count = 1;
+        for (Clue c : acrossClues) {
+            gui.text(c.getMarker() + ") " + c.getQuestion(), Tile.getSideLength() * (size + 2), gui.height / 75.0f * count, Tile.getSideLength() * 12, gui.height / 37.5f);
+            count++;
+        }
+
+        count = 1;
+
+        for (Clue c : downClues) {
+            gui.text(c.getMarker() + ") " + c.getQuestion(), Tile.getSideLength() * (size + 2) + Tile.getSideLength() * 13, gui.height / 75.0f * count, Tile.getSideLength() * 12, gui.height / 37.5f);
+            count++;
+        }
+
+        gui.fill(255, 0, 0);
+        gui.text("Across", Tile.getSideLength() * (size + 2), 1, Tile.getSideLength() * 12, gui.height/37.5f);
+        gui.text("Down", Tile.getSideLength() * (size + 2) + Tile.getSideLength() * 13, 1, Tile.getSideLength() * 12, gui.height/37.5f);
     }
 
 
     public String getDate() {
         return date;
+    }
+    public boolean hasDate() {
+        return date != null && date.length() > 0;
     }
     public void setDate(String _date) {
         date = _date;
@@ -58,6 +86,17 @@ public class Board {
     public void setWeekday(String _weekday) {
         weekday = _weekday;
     }
+
+    public String getTitle() {
+        return title;
+    }
+    public boolean hasTitle() {
+        return title != null && date.length() > 0;
+    }
+    public void setTitle(String _title) {
+        title = _title;
+    }
+
 
     public int getSize() {
         return size;
