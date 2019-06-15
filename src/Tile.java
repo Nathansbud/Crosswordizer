@@ -6,7 +6,9 @@ public class Tile {
 
     public static float sideLength;
 
-    private String marker;
+    private String marker = "";
+    private String correctValue = "";
+    private String currentValue = "";
 
     private int row;
     private int col;
@@ -16,8 +18,6 @@ public class Tile {
 
     private boolean special = false;
 
-    private String correctValue;
-    private String currentValue;
 
     private int markerSize = 12;
     private int valueSize = 16;
@@ -50,7 +50,18 @@ public class Tile {
             gui.fill(180); //shaded cells
         }
 
+        if(!isSelected()) {
+            gui.strokeWeight(1);
+            gui.stroke(0);
+        } else {
+            gui.strokeWeight(2);
+            gui.stroke(0, 0, 255);
+        }
         gui.rect(x, y, sideLength, sideLength);
+
+        gui.strokeWeight(1);
+        gui.stroke(0);
+
 
         if(circled) {
             gui.fill(PApplet.unhex("ffffcd20"));
@@ -67,7 +78,7 @@ public class Tile {
             if(isCorrect() && isRebus()) {
                 gui.fill(255, 0, 0);
             } else if(isCorrect()) {
-                gui.fill(0, 255, 0); //Prob shouldn't do this!
+//                gui.fill(0, 255, 0); //Prob shouldn't do this!
             } else {
                 gui.fill(0);
             }
@@ -75,20 +86,22 @@ public class Tile {
             gui.textSize(valueSize);
             gui.text(currentValue, (2*x + sideLength)/2.0f - 0.5f*gui.textWidth(currentValue), (2*y + sideLength)/2.0f+0.1f*valueSize, x + sideLength, y + sideLength);
         }
-
-//        if(hasCorrectValue()) {
-//            gui.fill(0);
-//            gui.textSize(valueSize);
-//            gui.text(correctValue, (2*x + sideLength)/2.0f - 0.5f*gui.textWidth(correctValue), (2*y + sideLength)/2.0f+0.1f*valueSize, x + sideLength, y + sideLength);
-//        }
     }
 
     public static Tile getSelected() {
         return selected;
     }
+
+    public static boolean hasSelected() {
+        return selected != null;
+    }
+    public static boolean isSelected(Tile t) {
+        return selected != null && selected.equals(t);
+    }
     public boolean isSelected() {
         return selected != null && selected.equals(this);
     }
+
     public static void setSelected(Tile _selected) {
         selected = _selected;
     }

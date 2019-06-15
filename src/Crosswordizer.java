@@ -1,7 +1,7 @@
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import processing.core.PApplet;
 
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 
@@ -21,20 +21,121 @@ public class Crosswordizer extends PApplet {
     public void setup() {
         Board.setStatics();
         Tile.setStatics();
-
+        
         board.setup();
     }
-
     @Override
     public void draw() {
         background(PApplet.unhex("fff2eecb"));
         board.draw();
     }
 
-    public static Object checkedGet(JSONObject jsonObj, String key) {
-        return (jsonObj.containsKey(key)) ? (jsonObj.get(key)) : null;
+    @Override
+    public void keyPressed() {
+        System.out.println(keyCode);
+        if(Tile.hasSelected()) {
+            int currentIndex;
+            int changeIndex;
+
+            switch (keyCode) {
+                case 8:
+                    Tile.getSelected().setCurrentValue("");
+                    break;
+                case 37: //Left Arrow Key
+                    currentIndex = (Tile.getSelected().getCol() == 0) ? board.getSize() : Tile.getSelected().getCol();
+                    changeIndex = currentIndex;
+
+                    while (currentIndex > 0) {
+                        if (!board.getTile(Tile.getSelected().getRow(), currentIndex - 1).isWall()) {
+                            changeIndex = currentIndex - 1;
+                            break;
+                        } else {
+                            currentIndex -= 1;
+                            if(currentIndex == 0) {
+                                currentIndex = board.getSize();
+                            }
+                        }
+                    }
+                    Tile.setSelected(board.getTile(Tile.getSelected().getRow(), changeIndex));
+                    break;
+                case 38: //Up Arrow Key
+                    currentIndex = (Tile.getSelected().getRow() == 0) ? board.getSize() : Tile.getSelected().getRow();
+                    changeIndex = currentIndex;
+
+                    while (currentIndex > 0) {
+                        if (!board.getTile(currentIndex - 1, Tile.getSelected().getCol()).isWall()) {
+                            changeIndex = currentIndex - 1;
+                            break;
+                        } else {
+                            currentIndex -= 1;
+                            if(currentIndex == 0) {
+                                currentIndex = board.getSize();
+                            }
+                        }
+                    }
+                    Tile.setSelected(board.getTile(changeIndex, Tile.getSelected().getCol()));
+                    break;
+                case 9: //Tab
+                case 39: //Right Arrow Key
+                    currentIndex = (Tile.getSelected().getCol() == board.getSize() - 1) ? -1 : Tile.getSelected().getCol();
+                    changeIndex = currentIndex;
+
+                    while (currentIndex < board.getSize() - 1) {
+                        if (!board.getTile(Tile.getSelected().getRow(), currentIndex + 1).isWall()) {
+                            changeIndex = currentIndex + 1;
+                            break;
+                        } else {
+                            currentIndex += 1;
+                            if(currentIndex == board.getSize() - 1) {
+                                currentIndex = -1;
+                            }
+                        }
+                    }
+                    Tile.setSelected(board.getTile(Tile.getSelected().getRow(), changeIndex));
+                    break;
+                case 10: //Enter Key
+                case 40: //Down Arrow Key
+                    currentIndex = (Tile.getSelected().getRow() == board.getSize() - 1) ? -1 : Tile.getSelected().getRow();
+                    changeIndex = currentIndex;
+
+                    while (currentIndex < board.getSize() - 1) {
+                        if (!board.getTile(currentIndex + 1, Tile.getSelected().getCol()).isWall()) {
+                            changeIndex = currentIndex + 1;
+                            break;
+                        } else {
+                            currentIndex += 1;
+                            if(currentIndex == board.getSize() - 1) {
+                                currentIndex = -1;
+                            }
+                        }
+                    }
+                    Tile.setSelected(board.getTile(changeIndex, Tile.getSelected().getCol()));
+                    break;
+                default:
+                    if(Character.getType(keyCode) != 15) {
+                        if(board.hasRebus()) {
+                            Tile.getSelected().setCurrentValue(Tile.getSelected().getCurrentValue() + Character.toUpperCase(key));
+                        } else {
+                            Tile.getSelected().setCurrentValue(String.valueOf(Character.toUpperCase(key)));
+                        }
+                    }
+                    break;
+            }
+        }
     }
 
+    @Override
+    public void mouseClicked() {
+        for(int i = 0; i < board.getSize()*board.getSize(); i++) {
+            if(!board.getTile(i).isWall() && mouseX > board.getTile(i).getX() && mouseX < board.getTile(i).getX() + Tile.getSideLength() && mouseY > board.getTile(i).getY() && mouseY < board.getTile(i).getY() + Tile.getSideLength()) {
+                Tile.setSelected(board.getTile(i));
+            }
+        }
+    }
+
+    private static Object checkedGet(JSONObject jsonObj, String key) {
+        return (jsonObj.containsKey(key)) ? (jsonObj.get(key)) : null;
+    }
     private static void loadPuzzle() {
         JSONParser jsonParser = new JSONParser();
         try {
@@ -81,15 +182,15 @@ public class Crosswordizer extends PApplet {
 
                     t.setRow(Integer.valueOf(String.valueOf(tile.get("row"))));
                     t.setCol(Integer.valueOf(String.valueOf(tile.get("column"))));
+
                     if(tile.containsKey("wall")){
                         t.setWall(true);
                     } else {
                         if (tile.containsKey("marker")) t.setMarker((String.valueOf(tile.get("marker"))));
-                        if (tile.containsKey("value")) {
-                            t.setCorrectValue((String) tile.get("value"));
+                        if (tile.containsKey("value")) t.setCorrectValue((String) tile.get("value"));
+                        if (tile.containsKey("rebus")) {
                             t.setRebus(true);
-                        } else if (tile.containsKey("letter")) {
-                            t.setCorrectValue((String) tile.get("letter"));
+                            b.setRebus(true);
                         }
                         if (tile.containsKey("shaded")) t.setShaded(true);
                         if (tile.containsKey("circled")) t.setCircled(true);
@@ -111,11 +212,9 @@ public class Crosswordizer extends PApplet {
             e.printStackTrace();
         }
     }
-
     private static void scrapePuzzle() {
         scrapePuzzle("");
     }
-
     private static void scrapePuzzle(String date) { //date in M/D/Y, no 0s on single-digits
         try {
             Process scrape = Runtime.getRuntime().exec("/Users/zackamiton/Code/Crosswordizer/scraper/scraper.py " + date);
@@ -124,13 +223,14 @@ public class Crosswordizer extends PApplet {
             e.printStackTrace();
         }
     }
-
     public static Crosswordizer getApp() {
         return app;
     }
 
+
+
     public static void main(String[] args) {
-        scrapePuzzle("4/29/2019");
+        scrapePuzzle();
         loadPuzzle();
 
         PApplet.runSketch(new String[]{"Crossword"}, app);

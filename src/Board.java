@@ -15,6 +15,8 @@ public class Board {
     private ArrayList<Clue> downClues = new ArrayList<Clue>();
     private ArrayList<Clue> acrossClues = new ArrayList<Clue>(); //Should these be the same arraylist?
 
+    private boolean rebus = false;
+
     public Board() {
 
     }
@@ -29,7 +31,6 @@ public class Board {
                 t.setup();
             }
         }
-
     }
 
     public void draw() {
@@ -37,6 +38,9 @@ public class Board {
             for(Tile t : tls) {
                 t.draw();
             }
+        }
+        if(Tile.hasSelected()) {
+            Tile.getSelected().draw();
         }
     }
 
@@ -115,5 +119,12 @@ public class Board {
     }
     public static void setGui(PApplet _gui) {
         gui = _gui;
+    }
+
+    public boolean hasRebus() {
+        return rebus;
+    }
+    public void setRebus(boolean _rebus) {
+        rebus = _rebus;
     }
 }
