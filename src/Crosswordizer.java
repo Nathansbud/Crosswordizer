@@ -26,13 +26,12 @@ public class Crosswordizer extends PApplet {
     }
     @Override
     public void draw() {
-        background(PApplet.unhex("fff2eecb"));
+        background(PApplet.unhex(CConstants.BACKGROUND_COLOR));
         board.draw();
     }
 
     @Override
     public void keyPressed() {
-//        System.out.println(keyCode);
         if(Tile.hasSelected()) {
             int currentIndex;
             int changeIndex;
@@ -57,6 +56,7 @@ public class Crosswordizer extends PApplet {
                         }
                     }
                     Tile.setSelected(board.getTile(Tile.getSelected().getRow(), changeIndex));
+                    board.setCrosses();
                     break;
                 case 38: //Up Arrow Key
                     currentIndex = (Tile.getSelected().getRow() == 0) ? board.getSize() : Tile.getSelected().getRow();
@@ -74,6 +74,7 @@ public class Crosswordizer extends PApplet {
                         }
                     }
                     Tile.setSelected(board.getTile(changeIndex, Tile.getSelected().getCol()));
+                    board.setCrosses();
                     break;
                 case 9: //Tab
                 case 39: //Right Arrow Key
@@ -92,6 +93,7 @@ public class Crosswordizer extends PApplet {
                         }
                     }
                     Tile.setSelected(board.getTile(Tile.getSelected().getRow(), changeIndex));
+                    board.setCrosses();
                     break;
                 case 10: //Enter Key
                 case 40: //Down Arrow Key
@@ -110,6 +112,7 @@ public class Crosswordizer extends PApplet {
                         }
                     }
                     Tile.setSelected(board.getTile(changeIndex, Tile.getSelected().getCol()));
+                    board.setCrosses();
                     break;
                 default:
                     if(Character.getType(keyCode) != 15) {
@@ -129,9 +132,11 @@ public class Crosswordizer extends PApplet {
         for(int i = 0; i < board.getSize()*board.getSize(); i++) {
             if(!board.getTile(i).isWall() && mouseX > board.getTile(i).getX() && mouseX < board.getTile(i).getX() + Tile.getSideLength() && mouseY > board.getTile(i).getY() && mouseY < board.getTile(i).getY() + Tile.getSideLength()) {
                 Tile.setSelected(board.getTile(i));
+                board.setCrosses();
             }
         }
     }
+
 
     private static Object checkedGet(JSONObject jsonObj, String key) {
         return (jsonObj.containsKey(key)) ? (jsonObj.get(key)) : null;

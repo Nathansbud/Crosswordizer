@@ -4,6 +4,9 @@ public class Tile {
     public static PApplet gui;
     public static Tile selected = null;
 
+    public static Tile acrossRoot = null;
+    public static Tile downRoot = null;
+
     public static float sideLength;
 
     private String marker = "";
@@ -49,22 +52,23 @@ public class Tile {
         } else if(!shaded) {
             gui.fill(255); //normal
         } else {
-            gui.fill(180); //shaded cells
+            gui.fill(PApplet.unhex(CConstants.SHADED_COLOR)); //shaded cells
         }
 
-        if(!isSelected()) {
-            gui.strokeWeight(1);
-            gui.stroke(0);
+        if(isSelected()) {
+            gui.strokeWeight(2);
+            gui.stroke(PApplet.unhex(CConstants.SELECTED_COLOR));
         } else if(horizontal) {
             gui.strokeWeight(2);
-            gui.stroke(255, 0, 0);
+            gui.stroke(PApplet.unhex(CConstants.ACROSS_COLOR));
         } else if(vertical) {
             gui.strokeWeight(2);
-            gui.stroke(0, 255, 0);
+            gui.stroke(PApplet.unhex(CConstants.DOWN_COLOR));
         } else {
-            gui.strokeWeight(2);
-            gui.stroke(0, 0, 255);
+            gui.strokeWeight(1);
+            gui.stroke(0);
         }
+
         gui.rect(x, y, sideLength, sideLength);
 
         gui.strokeWeight(1);
@@ -72,7 +76,7 @@ public class Tile {
 
 
         if(circled) {
-            gui.fill(PApplet.unhex("ffffcd20"));
+            gui.fill(PApplet.unhex(CConstants.CIRCLE_COLOR));
             gui.ellipse((2*x + sideLength)/2.0f, (2*y + sideLength)/(2.0f) + 0.2f*valueSize, sideLength/1.5f, sideLength/1.5f);
         }
 
@@ -84,13 +88,13 @@ public class Tile {
 
         if(hasCurrentValue()) {
             if(isCorrect() && isRebus()) {
-                gui.fill(255, 0, 0);
+                gui.fill(PApplet.unhex(CConstants.DOWN_COLOR));
             } else {
                 gui.fill(0);
             }
 
             gui.textSize(valueSize);
-            gui.text(currentValue, (2*x + sideLength)/2.0f - 0.5f*gui.textWidth(currentValue), y + 0.3f*sideLength, x + sideLength, y + sideLength);
+            gui.text(currentValue, (2*x + sideLength)/2.0f - 0.5f*gui.textWidth(currentValue), y + 0.5f * sideLength + 0.6f*valueSize); //0.5 * valueSize would be exact center, but 0.6 to offset from marker
         }
 
         gui.textSize(12);
@@ -99,20 +103,20 @@ public class Tile {
     public static Tile getSelected() {
         return selected;
     }
-
     public static boolean hasSelected() {
         return selected != null;
     }
     public static boolean isSelected(Tile t) {
         return selected != null && selected.equals(t);
     }
+    public static void setSelected(Tile _selected) {
+        selected = _selected;
+    }
+
     public boolean isSelected() {
         return selected != null && selected.equals(this);
     }
 
-    public static void setSelected(Tile _selected) {
-        selected = _selected;
-    }
 
     public boolean hasCorrectValue() {
         return correctValue != null && correctValue.length() > 0;
@@ -240,6 +244,40 @@ public class Tile {
         valueSize = _valueSize;
     }
 
+    public boolean isHorizontal() {
+        return horizontal;
+    }
 
+    public void setHorizontal(boolean _horizontal) {
+        horizontal = _horizontal;
+    }
+
+    public boolean isVertical() {
+        return vertical;
+    }
+
+    public void setVertical(boolean _vertical) {
+        vertical = _vertical;
+    }
+
+    public static Tile getAcrossRoot() {
+        return acrossRoot;
+    }
+    public static boolean hasAcrossRoot() {
+        return acrossRoot != null;
+    }
+    public static void setAcrossRoot(Tile _acrossRoot) {
+        acrossRoot = _acrossRoot;
+    }
+
+    public static Tile getDownRoot() {
+        return downRoot;
+    }
+    public static boolean hasDownRoot() {
+        return downRoot != null;
+    }
+    public static void setDownRoot(Tile _downRoot) {
+        downRoot = _downRoot;
+    }
 }
 

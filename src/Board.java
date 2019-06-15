@@ -53,13 +53,31 @@ public class Board {
 
         int count = 1;
         for (Clue c : acrossClues) {
+            if(Tile.hasAcrossRoot()) {
+                if(c.getMarker().equals(Tile.getAcrossRoot().getMarker())) {
+                    gui.fill(PApplet.unhex(CConstants.ACROSS_COLOR));
+                    gui.text(c.getMarker() + ") " + c.getQuestion(), Tile.getSideLength(), Tile.getSideLength() * (size + 2.5f));
+                } else {
+                    gui.fill(0);
+                }
+            }
             gui.text(c.getMarker() + ") " + c.getQuestion(), Tile.getSideLength() * (size + 2), gui.height / 75.0f * count, Tile.getSideLength() * 12, gui.height / 37.5f);
             count++;
         }
 
+        gui.fill(0);
+
         count = 1;
 
         for (Clue c : downClues) {
+            if(Tile.hasDownRoot()) {
+                if(c.getMarker().equals(Tile.getDownRoot().getMarker())) {
+                    gui.fill(PApplet.unhex(CConstants.DOWN_COLOR));
+                    gui.text(c.getMarker() + ") " + c.getQuestion(), Tile.getSideLength(), Tile.getSideLength() * (size + 3));
+                } else {
+                    gui.fill(0);
+                }
+            }
             gui.text(c.getMarker() + ") " + c.getQuestion(), Tile.getSideLength() * (size + 2) + Tile.getSideLength() * 13, gui.height / 75.0f * count, Tile.getSideLength() * 12, gui.height / 37.5f);
             count++;
         }
@@ -69,6 +87,66 @@ public class Board {
         gui.text("Down", Tile.getSideLength() * (size + 2) + Tile.getSideLength() * 13, 1, Tile.getSideLength() * 12, gui.height/37.5f);
     }
 
+    public void setCrosses() {
+        for(int i = 0; i < size*size; i++) {
+            getTile(i).setHorizontal(false);
+            getTile(i).setVertical(false);
+        }
+
+        if(Tile.hasSelected()) {
+            int across = Tile.getSelected().getCol();
+            int down = Tile.getSelected().getRow();
+
+            Tile acrossRoot = null;
+            Tile downRoot = null;
+
+            for(int i = across - 1; i >= 0; i--) {
+                if(getTile(down, i).isWall()) {
+                    acrossRoot = getTile(down, i+1);
+                    break;
+                } else {
+                    getTile(down, i).setHorizontal(true);
+                }
+            }
+
+            for(int i = across + 1; i < size; i++) {
+                if(getTile(down, i).isWall()) {
+                    break;
+                } else {
+                    getTile(down, i).setHorizontal(true);
+                }
+            }
+
+            for(int i = down - 1; i >= 0; i--) {
+                if(getTile(i, across).isWall()) {
+                    downRoot = getTile(i+1, across);
+                    break;
+                } else {
+                    getTile(i, across).setVertical(true);
+                }
+            }
+
+            for(int i = down + 1; i < size; i++) {
+                if(getTile(i, across).isWall()) {
+                    break;
+                } else {
+                    getTile(i, across).setVertical(true);
+                }
+            }
+
+            if (downRoot != null) {
+                Tile.setDownRoot(downRoot);
+            } else {
+                Tile.setDownRoot(getTile(0, across));
+            }
+
+            if (acrossRoot != null) {
+                Tile.setAcrossRoot(acrossRoot);
+            } else {
+                Tile.setAcrossRoot(getTile(down, 0));
+            }
+        }
+    }
 
     public String getDate() {
         return date;
@@ -96,7 +174,6 @@ public class Board {
     public void setTitle(String _title) {
         title = _title;
     }
-
 
     public int getSize() {
         return size;
