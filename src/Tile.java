@@ -1,18 +1,86 @@
+import processing.core.PApplet;
+
 public class Tile {
+    public static PApplet gui;
     public static Tile selected = null;
+
+    public static float sideLength;
 
     private String marker;
 
     private int row;
     private int col;
 
-    private boolean special = false; //Handle weird crossword puzzle tiles ("oo") for themed puzzles
+    public float x;
+    public float y;
+
+    private boolean special = false;
 
     private String correctValue;
     private String currentValue;
 
+    private int markerSize = 12;
+    private int valueSize = 16;
+
+    private boolean wall;
+    private boolean circled;
+    private boolean shaded;
+    private boolean rebus; //Handle weird crossword puzzle tiles ("oo") for themed puzzles
+
     public Tile() {
 
+    }
+
+    public static void setStatics() {
+        setGui(Crosswordizer.getApp());
+        setSideLength(gui.width/36.0f);
+    }
+
+    public void setup() {
+        x = col*sideLength;
+        y = row*sideLength;
+    }
+
+    public void draw() {
+        if(wall) {
+            gui.fill(0);
+        } else if(!shaded) {
+            gui.fill(255); //normal
+        } else {
+            gui.fill(180); //shaded cells
+        }
+
+        gui.rect(x, y, sideLength, sideLength);
+
+        if(circled) {
+            gui.fill(PApplet.unhex("ffffcd20"));
+            gui.ellipse((2*x + sideLength)/2.0f, (2*y + sideLength)/(2.0f) + 0.2f*valueSize, sideLength/1.5f, sideLength/1.5f);
+        }
+
+        if(hasMarker()) {
+            gui.fill(0);
+            gui.textSize(markerSize);
+            gui.text(marker, x, y, x + sideLength, y + sideLength);
+        }
+
+        if(hasCurrentValue()) {
+            if(isCorrect() && isRebus()) {
+                gui.fill(255, 0, 0);
+            } else if(isCorrect()) {
+                gui.fill(0, 255, 0); //Prob shouldn't do this!
+            } else {
+                gui.fill(0);
+            }
+
+            gui.textSize(valueSize);
+            gui.text(currentValue, (2*x + sideLength)/2.0f - 0.5f*gui.textWidth(currentValue), (2*y + sideLength)/2.0f+0.1f*valueSize, x + sideLength, y + sideLength);
+        }
+
+//        if(hasCorrectValue()) {
+//            gui.fill(0);
+//            gui.textSize(valueSize);
+//            gui.text(correctValue, (2*x + sideLength)/2.0f - 0.5f*gui.textWidth(correctValue), (2*y + sideLength)/2.0f+0.1f*valueSize, x + sideLength, y + sideLength);
+//        }
     }
 
     public static Tile getSelected() {
@@ -23,6 +91,20 @@ public class Tile {
     }
     public static void setSelected(Tile _selected) {
         selected = _selected;
+    }
+
+    public boolean hasCorrectValue() {
+        return correctValue != null && correctValue.length() > 0;
+    }
+    public boolean hasMarker() {
+        return marker != null && marker.length() > 0;
+    }
+    public boolean hasCurrentValue() {
+        return currentValue != null && currentValue.length() > 0;
+    }
+
+    public boolean isCorrect() {
+        return correctValue.equals(currentValue);
     }
 
     public String getMarker() {
@@ -66,4 +148,77 @@ public class Tile {
     public void setCurrentValue(String _currentValue) {
         currentValue = _currentValue;
     }
+
+    public static PApplet getGui() {
+        return gui;
+    }
+    public static void setGui(PApplet _gui) {
+        gui = _gui;
+    }
+
+    public static float getSideLength() {
+        return sideLength;
+    }
+    public static void setSideLength(float _sideLength) {
+        sideLength = _sideLength;
+    }
+
+    public boolean isCircled() {
+        return circled;
+    }
+    public void setCircled(boolean _circled) {
+        circled = _circled;
+    }
+
+    public boolean isShaded() {
+        return shaded;
+    }
+    public void setShaded(boolean _shaded) {
+        shaded = _shaded;
+    }
+
+    public boolean isWall() {
+        return wall;
+    }
+    public void setWall(boolean _wall) {
+        wall = _wall;
+    }
+
+    public boolean isRebus() {
+        return rebus;
+    }
+    public void setRebus(boolean _rebus) {
+        rebus = _rebus;
+    }
+
+    public float getX() {
+        return x;
+    }
+    public void setX(float _x) {
+        x = _x;
+    }
+
+    public float getY() {
+        return y;
+    }
+    public void setY(float _y) {
+        y = _y;
+    }
+
+    public int getMarkerSize() {
+        return markerSize;
+    }
+    public void setMarkerSize(int _markerSize) {
+        markerSize = _markerSize;
+    }
+
+    public int getValueSize() {
+        return valueSize;
+    }
+    public void setValueSize(int _valueSize) {
+        valueSize = _valueSize;
+    }
+
+
 }
+

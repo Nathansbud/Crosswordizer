@@ -1,7 +1,10 @@
-import java.lang.reflect.Array;
+import processing.core.PApplet;
+
 import java.util.ArrayList;
 
 public class Board {
+    private static PApplet gui;
+
     private int size;
 
     private String date;
@@ -15,6 +18,28 @@ public class Board {
     public Board() {
 
     }
+
+    public static void setStatics() {
+        setGui(Crosswordizer.getApp());
+    }
+
+    public void setup() {
+        for(Tile[] tls : tiles) {
+            for(Tile t : tls) {
+                t.setup();
+            }
+        }
+
+    }
+
+    public void draw() {
+        for(Tile[] tls : tiles) {
+            for(Tile t : tls) {
+                t.draw();
+            }
+        }
+    }
+
 
     public String getDate() {
         return date;
@@ -83,5 +108,12 @@ public class Board {
     }
     public void setAcrossClues(ArrayList<Clue> _acrossClues) {
         acrossClues = _acrossClues;
+    }
+
+    public static PApplet getGui() {
+        return gui;
+    }
+    public static void setGui(PApplet _gui) {
+        gui = _gui;
     }
 }
