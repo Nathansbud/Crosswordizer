@@ -36,6 +36,12 @@ public class Tile {
 
     }
 
+    public Tile(int _row, int _column, boolean _wall) {
+        row = _row;
+        col = _column;
+        wall = _wall;
+    }
+
     public static void setStatics() {
         setGui(Crosswordizer.getApp());
         setSideLength(gui.width/48.0f);

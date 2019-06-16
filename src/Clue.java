@@ -13,6 +13,17 @@ public class Clue {
     public Clue() {
 
     }
+    public Clue(String _marker, String _question, String _answer) {
+        marker = _marker;
+        question = _question;
+    }
+    public Clue(String _marker, String _question, String _answer, Direction _direction) {
+        marker = _marker;
+        question = _question;
+        answer = _answer;
+        direction = _direction;
+    }
+
     public Clue(Direction _direction) {
         direction = _direction;
     }

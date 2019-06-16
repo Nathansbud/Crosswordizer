@@ -12,6 +12,8 @@ import java.io.File;
 public class Crosswordizer extends PApplet {
     private static Crosswordizer app = new Crosswordizer();
     private static Board board;
+    private static Scraper scraper = new Scraper();
+
 
     @Override
     public void settings() {
@@ -218,25 +220,12 @@ public class Crosswordizer extends PApplet {
             e.printStackTrace();
         }
     }
-    private static void scrapePuzzle() {
-        scrapePuzzle("");
-    }
-    private static void scrapePuzzle(String date) { //date in M/D/Y, no 0s on single-digits
-        try {
-            Process scrape = Runtime.getRuntime().exec("/Users/zackamiton/Code/Crosswordizer/scraper/scraper.py " + date);
-            scrape.waitFor(); //Make sure file exists and main thread halts to avoid accessing the file until then
-        } catch(IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
     public static Crosswordizer getApp() {
         return app;
     }
 
     public static void main(String[] args) {
-        scrapePuzzle("1/20/2008");
-        loadPuzzle();
-
+        board = scraper.scrapePuzzle();
         PApplet.runSketch(new String[]{"Crossword"}, app);
     }
 }
