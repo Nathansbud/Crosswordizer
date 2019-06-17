@@ -1,3 +1,6 @@
+import com.gargoylesoftware.htmlunit.SilentCssErrorHandler;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlLink;
 import org.jsoup.*;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -10,17 +13,16 @@ import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+
+
+
 public class Scraper {
     public Scraper() {
+
     }
 
-    public Board scrapePuzzle() { //Use today's date if no date specified
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-        Date date = new Date();
-        String todayDate = sdf.format(date);
-
-        return scrapePuzzle((todayDate.startsWith("0")) ? todayDate.substring(1) : todayDate);
-    }
 
     public boolean isBeforeShortz(String date) {
         String[] s = date.split("/");
@@ -38,6 +40,13 @@ public class Scraper {
         return checkDate.before(shortzDate);
     }
 
+    public Board scrapePuzzle() { //Use today's date if no date specified
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+        Date date = new Date();
+        String todayDate = sdf.format(date);
+
+        return scrapePuzzle((todayDate.startsWith("0")) ? todayDate.substring(1) : todayDate);
+    }
     public Board scrapePuzzle(String date) {
         Board b = new Board();
 
@@ -125,5 +134,44 @@ public class Scraper {
         }
 
         return b;
+    }
+
+    public Board scrapeWashingtonPost(String date) {
+        String[] dateParts = date.split("/");
+        for(int i = 0; i < 2; i++) {
+            if(Integer.parseInt(dateParts[i]) < 10) {
+                dateParts[i] = "0" + dateParts[i];
+            }
+        }
+        dateParts[2] = dateParts[2].substring(2);
+        date = dateParts[2] + dateParts[0] + dateParts[1];
+
+        if(Integer.parseInt(date) < 171130) {
+            System.out.println("No archived puzzles before November 30th, 2017...");
+            System.out.println("Setting puzzle to most recent: ");
+            date = "171130";
+        }
+
+        try {
+            WebClient client = new WebClient(); //Use HtmlUnit because page loading is dynamic, not static :(((
+            client.setCssErrorHandler(new SilentCssErrorHandler());
+
+            HtmlPage page = client.getPage("https://cdn1.amuselabs.com/wapo/crossword?id=tca" + date + "&set=wapo-daily");
+//            (page.getElementById("footer-btn")).click();
+//            client.waitForBackgroundJavaScript(1000);
+//            (page.getElementById("answers-button")).click();
+//            client.waitForBackgroundJavaScript(1000);
+            ((HtmlButton)page.getByXPath("//button[@class='btn confirm-yes']").get(0)).click();
+//            client.waitForBackgroundJavaScript(1000);
+
+//            String cookie = "AL_PM_wapo-daily_tca" + date; //Uses to gauge if should load filled model
+//            page.executeJavaScript("window.localStorage.setItem('" + cookie + "', ' ');");
+//            page.refresh();
+//            System.out.println(page.asText());
+        } catch(IOException e) {
+            System.out.println("Doc download failed!");
+        }
+
+        return new Board();
     }
 }

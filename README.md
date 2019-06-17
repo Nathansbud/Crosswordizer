@@ -1,3 +1,3 @@
 # Crosswordizer
 
-A New York Times crossword scraper courtesy of xwordinfo!
+A New York Times crossword scraper

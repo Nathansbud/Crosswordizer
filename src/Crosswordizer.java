@@ -225,6 +225,7 @@ public class Crosswordizer extends PApplet {
     }
 
     public static void main(String[] args) {
+//        scraper.scrapeWashingtonPost("6/11/2019");
         board = scraper.scrapePuzzle();
         PApplet.runSketch(new String[]{"Crossword"}, app);
     }
