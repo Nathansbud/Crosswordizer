@@ -24,6 +24,7 @@ public class Crosswordizer extends PApplet {
         Board.setStatics();
         Tile.setStatics();
 
+        board.setHighlightMode(Board.HighlightMode.SINGLE);
         board.setup();
     }
     @Override
@@ -35,93 +36,60 @@ public class Crosswordizer extends PApplet {
     @Override
     public void keyPressed() {
         if(Tile.hasSelected()) {
-            int currentIndex;
-            int changeIndex;
-
             switch (keyCode) {
                 case 8:
                     Tile.getSelected().setCurrentValue("");
+                    if(board.getHighlightMode() == Board.HighlightMode.SINGLE) {
+                        if(board.isHighlightAcross()) {
+                            board.shiftDirection(Board.ShiftDirection.LEFT, true);
+                        } else if(board.isHighlightDown()) {
+                            board.shiftDirection(Board.ShiftDirection.UP, true);
+                        }
+                    }
                     break;
                 case 37: //Left Arrow Key
-                    currentIndex = (Tile.getSelected().getCol() == 0) ? board.getSize() : Tile.getSelected().getCol();
-                    changeIndex = currentIndex;
-
-                    while (currentIndex > 0) {
-                        if (!board.getTile(Tile.getSelected().getRow(), currentIndex - 1).isWall()) {
-                            changeIndex = currentIndex - 1;
-                            break;
-                        } else {
-                            currentIndex -= 1;
-                            if(currentIndex == 0) {
-                                currentIndex = board.getSize();
-                            }
-                        }
+                    if(board.isHighlightAcross()) {
+                        board.shiftDirection(Board.ShiftDirection.LEFT, false);
+                    } else if(board.getHighlightMode() == Board.HighlightMode.SINGLE) {
+                        board.swapHighlights(Board.ShiftDirection.LEFT);
                     }
-                    Tile.setSelected(board.getTile(Tile.getSelected().getRow(), changeIndex));
-                    board.setCrosses();
                     break;
                 case 38: //Up Arrow Key
-                    currentIndex = (Tile.getSelected().getRow() == 0) ? board.getSize() : Tile.getSelected().getRow();
-                    changeIndex = currentIndex;
-
-                    while (currentIndex > 0) {
-                        if (!board.getTile(currentIndex - 1, Tile.getSelected().getCol()).isWall()) {
-                            changeIndex = currentIndex - 1;
-                            break;
-                        } else {
-                            currentIndex -= 1;
-                            if(currentIndex == 0) {
-                                currentIndex = board.getSize();
-                            }
-                        }
+                    if(board.isHighlightDown()) {
+                        board.shiftDirection(Board.ShiftDirection.UP, false);
+                    } else if(board.getHighlightMode() == Board.HighlightMode.SINGLE){
+                        board.swapHighlights(Board.ShiftDirection.UP);
                     }
-                    Tile.setSelected(board.getTile(changeIndex, Tile.getSelected().getCol()));
-                    board.setCrosses();
                     break;
                 case 9: //Tab
                 case 39: //Right Arrow Key
-                    currentIndex = (Tile.getSelected().getCol() == board.getSize() - 1) ? -1 : Tile.getSelected().getCol();
-                    changeIndex = currentIndex;
-
-                    while (currentIndex < board.getSize() - 1) {
-                        if (!board.getTile(Tile.getSelected().getRow(), currentIndex + 1).isWall()) {
-                            changeIndex = currentIndex + 1;
-                            break;
-                        } else {
-                            currentIndex += 1;
-                            if(currentIndex == board.getSize() - 1) {
-                                currentIndex = -1;
-                            }
-                        }
+                    if(board.isHighlightAcross()) {
+                        board.shiftDirection(Board.ShiftDirection.RIGHT, false);
+                    } else if(board.getHighlightMode() == Board.HighlightMode.SINGLE){
+                        board.swapHighlights(Board.ShiftDirection.RIGHT);
                     }
-                    Tile.setSelected(board.getTile(Tile.getSelected().getRow(), changeIndex));
-                    board.setCrosses();
                     break;
-                case 10: //Enter Key
                 case 40: //Down Arrow Key
-                    currentIndex = (Tile.getSelected().getRow() == board.getSize() - 1) ? -1 : Tile.getSelected().getRow();
-                    changeIndex = currentIndex;
-
-                    while (currentIndex < board.getSize() - 1) {
-                        if (!board.getTile(currentIndex + 1, Tile.getSelected().getCol()).isWall()) {
-                            changeIndex = currentIndex + 1;
-                            break;
-                        } else {
-                            currentIndex += 1;
-                            if(currentIndex == board.getSize() - 1) {
-                                currentIndex = -1;
-                            }
-                        }
+                    if(board.isHighlightDown()) {
+                        board.shiftDirection(Board.ShiftDirection.DOWN, false);
+                    } else if(board.getHighlightMode() == Board.HighlightMode.SINGLE) {
+                        board.swapHighlights(Board.ShiftDirection.DOWN);
                     }
-                    Tile.setSelected(board.getTile(changeIndex, Tile.getSelected().getCol()));
-                    board.setCrosses();
                     break;
                 default:
-                    if(Character.getType(keyCode) != 15) {
-                        if(board.hasRebus()) {
+                    if(Character.getType(keyCode) != 15 || keyCode == 10) {
+                        if(board.hasRebus() && keyCode != 10) {
                             Tile.getSelected().setCurrentValue(Tile.getSelected().getCurrentValue() + Character.toUpperCase(key));
                         } else {
-                            Tile.getSelected().setCurrentValue(String.valueOf(Character.toUpperCase(key)));
+                            if(keyCode != 10) Tile.getSelected().setCurrentValue(String.valueOf(Character.toUpperCase(key)));
+
+                            if(board.getHighlightMode() == Board.HighlightMode.SINGLE) {
+                                if(board.isHighlightAcross()) {
+                                    board.shiftDirection(Board.ShiftDirection.RIGHT, true);
+                                } else if(board.isHighlightDown()) {
+                                    board.shiftDirection(Board.ShiftDirection.DOWN, true);
+                                }
+                            }
                         }
                     }
                     break;
@@ -138,7 +106,6 @@ public class Crosswordizer extends PApplet {
             }
         }
     }
-
 
     private static Object checkedGet(JSONObject jsonObj, String key) {
         return (jsonObj.containsKey(key)) ? (jsonObj.get(key)) : null;

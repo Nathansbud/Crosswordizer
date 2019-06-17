@@ -3,6 +3,19 @@ import processing.core.PApplet;
 import java.util.ArrayList;
 
 public class Board {
+    public enum HighlightMode {
+        WING(),
+        SINGLE(),
+        NONE(),
+    }
+
+    public enum ShiftDirection {
+        UP(),
+        DOWN(),
+        LEFT(),
+        RIGHT()
+    }
+
     private static PApplet gui;
 
     private int size;
@@ -16,7 +29,14 @@ public class Board {
     private ArrayList<Clue> downClues = new ArrayList<Clue>();
     private ArrayList<Clue> acrossClues = new ArrayList<Clue>(); //Should these be the same arraylist?
 
+    private HighlightMode highlightMode;
+
+    private boolean highlightAcross;
+    private boolean highlightDown;
+
     private boolean rebus = false;
+
+//    private ShiftDirection lastMove; //Wings variable to check direction that shifts should move
 
     public Board() {
 
@@ -32,6 +52,7 @@ public class Board {
                 t.setup();
             }
         }
+        setHighlightMode(HighlightMode.SINGLE);
     }
 
     public void draw() {
@@ -87,63 +108,193 @@ public class Board {
         gui.text("Down", Tile.getSideLength() * (size + 2) + Tile.getSideLength() * 13, 1, Tile.getSideLength() * 12, gui.height/37.5f);
     }
 
+    public void swapHighlights(ShiftDirection d) {
+        switch(d) {
+            case UP:
+            case DOWN:
+                if(highlightAcross) {
+                    highlightAcross = false;
+                    highlightDown = true;
+                }
+                break;
+            case LEFT:
+            case RIGHT:
+                if(highlightDown) {
+                    highlightAcross = true;
+                    highlightDown = false;
+                }
+                break;
+        }
+        setCrosses();
+    }
+
+    public void shiftDirection(ShiftDirection d, boolean stopAtWalls) {
+        int currentIndex;
+        int changeIndex;
+
+        switch(d) {
+            case LEFT:
+                if(!stopAtWalls) {
+                    currentIndex = (Tile.getSelected().getCol() == 0) ? size : Tile.getSelected().getCol();
+                    changeIndex = currentIndex;
+
+                    while (currentIndex > 0) {
+                        if (!getTile(Tile.getSelected().getRow(), currentIndex - 1).isWall()) {
+                            changeIndex = currentIndex - 1;
+                            break;
+                        } else {
+                            currentIndex -= 1;
+                            if (currentIndex == 0) {
+                                currentIndex = size;
+                            }
+                        }
+                    }
+
+                    Tile.setSelected(getTile(Tile.getSelected().getRow(), changeIndex));
+                } else {
+                    if(Tile.getSelected().getCol() != 0 && !getTile(Tile.getSelected().getRow(), Tile.getSelected().getCol() - 1).isWall()) {
+                        Tile.setSelected(getTile(Tile.getSelected().getRow(), Tile.getSelected().getCol() - 1));
+                    }
+                }
+                break;
+            case RIGHT:
+                if(!stopAtWalls) {
+                    currentIndex = (Tile.getSelected().getCol() == size - 1) ? -1 : Tile.getSelected().getCol();
+
+                    changeIndex = currentIndex;
+
+                    while (currentIndex < size - 1) {
+                        if (!getTile(Tile.getSelected().getRow(), currentIndex + 1).isWall()) {
+                            changeIndex = currentIndex + 1;
+                            break;
+                        } else {
+                            currentIndex += 1;
+                            if (currentIndex == size - 1) {
+                                currentIndex = -1;
+                            }
+                        }
+                    }
+                    Tile.setSelected(getTile(Tile.getSelected().getRow(), changeIndex));
+                } else {
+                    if(Tile.getSelected().getCol() != size - 1 && !getTile(Tile.getSelected().getRow(), Tile.getSelected().getCol() + 1).isWall()) {
+                        Tile.setSelected(getTile(Tile.getSelected().getRow(), Tile.getSelected().getCol() + 1));
+                    }
+                }
+                break;
+            case UP:
+                if(!stopAtWalls) {
+                    currentIndex = (Tile.getSelected().getRow() == 0) ? size : Tile.getSelected().getRow();
+                    changeIndex = currentIndex;
+
+                    while (currentIndex > 0) {
+                        if (!getTile(currentIndex - 1, Tile.getSelected().getCol()).isWall()) {
+                            changeIndex = currentIndex - 1;
+                            break;
+                        } else {
+                            currentIndex -= 1;
+                            if (currentIndex == 0) {
+                                currentIndex = size;
+                            }
+                        }
+                    }
+                    Tile.setSelected(getTile(changeIndex, Tile.getSelected().getCol()));
+                } else {
+                    if(Tile.getSelected().getRow() != 0 && !getTile(Tile.getSelected().getRow() - 1, Tile.getSelected().getCol()).isWall()) {
+                        Tile.setSelected(getTile(Tile.getSelected().getRow() - 1, Tile.getSelected().getCol()));
+                    }
+                }
+                break;
+            case DOWN:
+                if(!stopAtWalls) {
+                    currentIndex = (Tile.getSelected().getRow() == size - 1) ? -1 : Tile.getSelected().getRow();
+                    changeIndex = currentIndex;
+
+                    while (currentIndex < size - 1) {
+                        if (!getTile(currentIndex + 1, Tile.getSelected().getCol()).isWall()) {
+                            changeIndex = currentIndex + 1;
+                            break;
+                        } else {
+                            currentIndex += 1;
+                            if (currentIndex == size - 1) {
+                                currentIndex = -1;
+                            }
+                        }
+                    }
+                    Tile.setSelected(getTile(changeIndex, Tile.getSelected().getCol()));
+                    break;
+                } else {
+                    if(Tile.getSelected().getRow() != size - 1 && !getTile(Tile.getSelected().getRow() + 1, Tile.getSelected().getCol()).isWall()) {
+                        Tile.setSelected(getTile(Tile.getSelected().getRow() + 1, Tile.getSelected().getCol()));
+                    }
+                }
+        }
+        setCrosses();
+    }
+
     public void setCrosses() {
         for(int i = 0; i < size*size; i++) {
             getTile(i).setHorizontal(false);
             getTile(i).setVertical(false);
         }
+        Tile.setDownRoot(null);
+        Tile.setAcrossRoot(null);
 
-        if(Tile.hasSelected()) {
+        if(Tile.hasSelected() && highlightMode != HighlightMode.NONE) {
             int across = Tile.getSelected().getCol();
             int down = Tile.getSelected().getRow();
 
             Tile acrossRoot = null;
             Tile downRoot = null;
 
-            for(int i = across - 1; i >= 0; i--) {
-                if(getTile(down, i).isWall()) {
-                    acrossRoot = getTile(down, i+1);
-                    break;
-                } else {
-                    getTile(down, i).setHorizontal(true);
+            if(highlightAcross) {
+                for (int i = across - 1; i >= 0; i--) {
+                    if (getTile(down, i).isWall()) {
+                        acrossRoot = getTile(down, i + 1);
+                        break;
+                    } else {
+                        getTile(down, i).setHorizontal(true);
+                    }
                 }
-            }
 
-            for(int i = across + 1; i < size; i++) {
-                if(getTile(down, i).isWall()) {
-                    break;
-                } else {
-                    getTile(down, i).setHorizontal(true);
+                for (int i = across + 1; i < size; i++) {
+                    if (getTile(down, i).isWall()) {
+                        break;
+                    } else {
+                        getTile(down, i).setHorizontal(true);
+                    }
                 }
-            }
 
-            for(int i = down - 1; i >= 0; i--) {
-                if(getTile(i, across).isWall()) {
-                    downRoot = getTile(i+1, across);
-                    break;
+                if (acrossRoot != null) {
+                    Tile.setAcrossRoot(acrossRoot);
                 } else {
-                    getTile(i, across).setVertical(true);
+                    Tile.setAcrossRoot(getTile(down, 0));
                 }
+
             }
 
-            for(int i = down + 1; i < size; i++) {
-                if(getTile(i, across).isWall()) {
-                    break;
+            if(highlightDown) {
+                for (int i = down - 1; i >= 0; i--) {
+                    if (getTile(i, across).isWall()) {
+                        downRoot = getTile(i + 1, across);
+                        break;
+                    } else {
+                        getTile(i, across).setVertical(true);
+                    }
+                }
+
+                for (int i = down + 1; i < size; i++) {
+                    if (getTile(i, across).isWall()) {
+                        break;
+                    } else {
+                        getTile(i, across).setVertical(true);
+                    }
+                }
+
+                if (downRoot != null) {
+                    Tile.setDownRoot(downRoot);
                 } else {
-                    getTile(i, across).setVertical(true);
+                    Tile.setDownRoot(getTile(0, across));
                 }
-            }
-
-            if (downRoot != null) {
-                Tile.setDownRoot(downRoot);
-            } else {
-                Tile.setDownRoot(getTile(0, across));
-            }
-
-            if (acrossRoot != null) {
-                Tile.setAcrossRoot(acrossRoot);
-            } else {
-                Tile.setAcrossRoot(getTile(down, 0));
             }
         }
     }
@@ -242,5 +393,45 @@ public class Board {
     }
     public void setRebus(boolean _rebus) {
         rebus = _rebus;
+    }
+
+    public HighlightMode getHighlightMode() {
+        return highlightMode;
+    }
+    public void setHighlightMode(HighlightMode _highlightMode) {
+        highlightMode = _highlightMode;
+        switch(_highlightMode) {
+            case NONE:
+                highlightDown = false;
+                highlightAcross = false;
+                break;
+            case SINGLE:
+                highlightAcross = true;
+                highlightDown = false;
+                break;
+            case WING:
+                highlightAcross = true;
+                highlightDown = true;
+                break;
+        }
+    }
+
+    public boolean isHighlightAcross() {
+        return highlightAcross;
+    }
+    public void setHighlightAcross(boolean _highlightAcross) {
+        highlightAcross = _highlightAcross;
+    }
+
+    public boolean isHighlightDown() {
+        return highlightDown;
+    }
+
+    public void setHighlightDown(boolean _highlightDown) {
+        highlightDown = _highlightDown;
+    }
+
+    public boolean isRebus() {
+        return rebus;
     }
 }
