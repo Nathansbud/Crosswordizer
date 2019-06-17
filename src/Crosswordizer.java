@@ -29,14 +29,15 @@ public class Crosswordizer extends PApplet {
     }
     @Override
     public void draw() {
-        background(PApplet.unhex(CConstants.BACKGROUND_COLOR));
+        background(PApplet.unhex(CColors.BACKGROUND_COLOR));
         board.draw();
     }
 
     @Override
     public void keyPressed() {
+        System.out.println(keyCode);
         if(Tile.hasSelected()) {
-            switch (keyCode) {
+            switch (keyCode) { //Backspace
                 case 8:
                     Tile.getSelected().setCurrentValue("");
                     if(board.getHighlightMode() == Board.HighlightMode.SINGLE) {
@@ -46,6 +47,12 @@ public class Crosswordizer extends PApplet {
                             board.shiftDirection(Board.ShiftDirection.UP, true);
                         }
                     }
+                    break;
+                case 16:
+                    Tile.getSelected().setGuess(!Tile.getSelected().isGuess());
+                    break;
+                case 17:
+                    Tile.getSelected().swapValues();
                     break;
                 case 37: //Left Arrow Key
                     if(board.isHighlightAcross()) {
@@ -61,7 +68,6 @@ public class Crosswordizer extends PApplet {
                         board.swapHighlights(Board.ShiftDirection.UP);
                     }
                     break;
-                case 9: //Tab
                 case 39: //Right Arrow Key
                     if(board.isHighlightAcross()) {
                         board.shiftDirection(Board.ShiftDirection.RIGHT, false);
@@ -77,18 +83,20 @@ public class Crosswordizer extends PApplet {
                     }
                     break;
                 default:
-                    if(Character.getType(keyCode) != 15 || keyCode == 10) {
-                        if(board.hasRebus() && keyCode != 10) {
+                    if(Character.getType(keyCode) != 15) {
+                        if(board.hasRebus()) {
                             Tile.getSelected().setCurrentValue(Tile.getSelected().getCurrentValue() + Character.toUpperCase(key));
                         } else {
-                            if(keyCode != 10) Tile.getSelected().setCurrentValue(String.valueOf(Character.toUpperCase(key)));
+                            Tile.getSelected().setCurrentValue(String.valueOf(Character.toUpperCase(key)));
+                        }
+                    }
 
-                            if(board.getHighlightMode() == Board.HighlightMode.SINGLE) {
-                                if(board.isHighlightAcross()) {
-                                    board.shiftDirection(Board.ShiftDirection.RIGHT, true);
-                                } else if(board.isHighlightDown()) {
-                                    board.shiftDirection(Board.ShiftDirection.DOWN, true);
-                                }
+                    if(Character.getType(keyCode) != 15 || keyCode == 9 || keyCode == 10) {
+                        if(board.getHighlightMode() == Board.HighlightMode.SINGLE) {
+                            if(board.isHighlightAcross()) {
+                                board.shiftDirection(Board.ShiftDirection.RIGHT, true);
+                            } else if(board.isHighlightDown()) {
+                                board.shiftDirection(Board.ShiftDirection.DOWN, true);
                             }
                         }
                     }

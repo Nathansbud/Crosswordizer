@@ -10,8 +10,10 @@ public class Tile {
     public static float sideLength;
 
     private String marker = "";
+
     private String correctValue = "";
     private String currentValue = "";
+    private String altValue = "";
 
     private int row;
     private int col;
@@ -19,10 +21,10 @@ public class Tile {
     public float x;
     public float y;
 
-    private boolean special = false;
-
     private static int markerSize = 12;
     private static int valueSize = 15;
+
+    private boolean guess = false;
 
     private boolean wall;
     private boolean circled;
@@ -31,6 +33,7 @@ public class Tile {
 
     private boolean horizontal;
     private boolean vertical;
+
 
     public Tile() {
 
@@ -58,18 +61,21 @@ public class Tile {
         } else if(!shaded) {
             gui.fill(255); //normal
         } else {
-            gui.fill(PApplet.unhex(CConstants.SHADED_COLOR)); //shaded cells
+            gui.fill(PApplet.unhex(CColors.SHADED_COLOR)); //shaded cells
         }
 
         if(isSelected()) {
             gui.strokeWeight(2);
-            gui.stroke(PApplet.unhex(CConstants.SELECTED_COLOR));
+            gui.stroke(PApplet.unhex(CColors.SELECTED_COLOR));
+        } else if(hasAltValue()) {
+            gui.strokeWeight(2);
+            gui.stroke(PApplet.unhex(CColors.DOUBLE_COLOR));
         } else if(horizontal) {
             gui.strokeWeight(2);
-            gui.stroke(PApplet.unhex(CConstants.ACROSS_COLOR));
+            gui.stroke(PApplet.unhex(CColors.ACROSS_COLOR));
         } else if(vertical) {
             gui.strokeWeight(2);
-            gui.stroke(PApplet.unhex(CConstants.DOWN_COLOR));
+            gui.stroke(PApplet.unhex(CColors.DOWN_COLOR));
         } else {
             gui.strokeWeight(1);
             gui.stroke(0);
@@ -82,7 +88,7 @@ public class Tile {
 
 
         if(circled) {
-            gui.fill(PApplet.unhex(CConstants.CIRCLE_COLOR));
+            gui.fill(PApplet.unhex(CColors.CIRCLE_COLOR));
             gui.ellipse((2*x + sideLength)/2.0f, (2*y + sideLength)/(2.0f) + 0.2f*valueSize, sideLength/1.5f, sideLength/1.5f);
         }
 
@@ -92,9 +98,14 @@ public class Tile {
             gui.text(marker, x, y, x + sideLength, y + sideLength);
         }
 
-        if(hasCurrentValue()) {
-            if(isCorrect() && isRebus()) {
-                gui.fill(PApplet.unhex(CConstants.DOWN_COLOR));
+
+        if(hasValue()) {
+            if(isGuess() && hasAltValue()) {
+                gui.fill(PApplet.unhex(CColors.DOUBLE_GUESS_COLOR));
+            } else if(hasAltValue()) {
+                gui.fill(PApplet.unhex(CColors.DOUBLE_COLOR));
+            } else if(isGuess()) {
+                gui.fill(PApplet.unhex(CColors.GUESS_COLOR));
             } else {
                 gui.fill(0);
             }
@@ -124,14 +135,30 @@ public class Tile {
     }
 
 
+    public boolean hasCurrentValue() {
+        return currentValue != null && currentValue.length() > 0;
+    }
+    public boolean hasAltValue() {
+        return altValue != null && altValue.length() > 0;
+    }
     public boolean hasCorrectValue() {
         return correctValue != null && correctValue.length() > 0;
     }
+
+    public boolean hasValue() {
+        return !(currentValue == null || currentValue.equals("")) || !(altValue == null || altValue.equals(""));
+    }
+
+    public void swapValues() {
+        String temp = currentValue;
+        currentValue = altValue;
+        altValue = temp;
+        System.out.println(currentValue + " " + altValue);
+    }
+
+
     public boolean hasMarker() {
         return marker != null && marker.length() > 0;
-    }
-    public boolean hasCurrentValue() {
-        return currentValue != null && currentValue.length() > 0;
     }
 
     public boolean isCorrect() {
@@ -159,13 +186,6 @@ public class Tile {
         col = _col;
     }
 
-    public boolean isSpecial() {
-        return special;
-    }
-    public void setSpecial(boolean _special) {
-        special = _special;
-    }
-
     public String getCorrectValue() {
         return correctValue;
     }
@@ -178,6 +198,13 @@ public class Tile {
     }
     public void setCurrentValue(String _currentValue) {
         currentValue = _currentValue;
+    }
+
+    public String getAltValue() {
+        return altValue;
+    }
+    public void setAltValue(String _altValue) {
+        altValue = _altValue;
     }
 
     public static PApplet getGui() {
@@ -285,5 +312,17 @@ public class Tile {
     public static void setDownRoot(Tile _downRoot) {
         downRoot = _downRoot;
     }
+
+    public boolean isGuess() {
+        return guess;
+    }
+    public boolean isRegular() {
+        return !guess;
+    }
+    public void setGuess(boolean _guess) {
+        guess = _guess;
+    }
+
+
 }
 

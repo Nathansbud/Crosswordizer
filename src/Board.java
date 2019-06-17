@@ -76,7 +76,7 @@ public class Board {
         for (Clue c : acrossClues) {
             if(Tile.hasAcrossRoot()) {
                 if(c.getMarker().equals(Tile.getAcrossRoot().getMarker())) {
-                    gui.fill(PApplet.unhex(CConstants.ACROSS_COLOR));
+                    gui.fill(PApplet.unhex(CColors.ACROSS_COLOR));
                     gui.text(c.getMarker() + ") " + c.getQuestion(), Tile.getSideLength(), Tile.getSideLength() * (size + 2.5f));
                 } else {
                     gui.fill(0);
@@ -93,7 +93,7 @@ public class Board {
         for (Clue c : downClues) {
             if(Tile.hasDownRoot()) {
                 if(c.getMarker().equals(Tile.getDownRoot().getMarker())) {
-                    gui.fill(PApplet.unhex(CConstants.DOWN_COLOR));
+                    gui.fill(PApplet.unhex(CColors.DOWN_COLOR));
                     gui.text(c.getMarker() + ") " + c.getQuestion(), Tile.getSideLength(), Tile.getSideLength() * (size + 3));
                 } else {
                     gui.fill(0);
