@@ -35,7 +35,6 @@ public class Board {
     private boolean highlightDown;
 
     private boolean rebus = false;
-
 //    private ShiftDirection lastMove; //Wings variable to check direction that shifts should move
 
     public Board() {
@@ -52,7 +51,6 @@ public class Board {
                 t.setup();
             }
         }
-        setHighlightMode(HighlightMode.SINGLE);
     }
 
     public void draw() {
@@ -245,7 +243,7 @@ public class Board {
 
             Tile acrossRoot = null;
             Tile downRoot = null;
-
+            
             if(highlightAcross) {
                 for (int i = across - 1; i >= 0; i--) {
                     if (getTile(down, i).isWall()) {
@@ -426,7 +424,6 @@ public class Board {
     public boolean isHighlightDown() {
         return highlightDown;
     }
-
     public void setHighlightDown(boolean _highlightDown) {
         highlightDown = _highlightDown;
     }

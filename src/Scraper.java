@@ -1,11 +1,22 @@
+import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.SilentCssErrorHandler;
-import com.gargoylesoftware.htmlunit.html.HtmlButton;
+
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlLink;
-import org.jsoup.*;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.FileReader;
 import java.io.IOException;
 
 import java.text.SimpleDateFormat;
@@ -13,18 +24,12 @@ import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
 
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+
 
 
 
 public class Scraper {
-    public Scraper() {
-
-    }
-
-
-    public boolean isBeforeShortz(String date) {
+    public static boolean isBeforeShortz(String date) {
         String[] s = date.split("/");
         Calendar checkDate = Calendar.getInstance();
 
@@ -40,14 +45,14 @@ public class Scraper {
         return checkDate.before(shortzDate);
     }
 
-    public Board scrapePuzzle() { //Use today's date if no date specified
+    public static Board scrapePuzzle() { //Use today's date if no date specified
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
         Date date = new Date();
         String todayDate = sdf.format(date);
 
         return scrapePuzzle((todayDate.startsWith("0")) ? todayDate.substring(1) : todayDate);
     }
-    public Board scrapePuzzle(String date) {
+    public static Board scrapePuzzle(String date) {
         Board b = new Board();
 
         try {
@@ -136,7 +141,7 @@ public class Scraper {
         return b;
     }
 
-    public Board scrapeWashingtonPost(String date) {
+    public static Board scrapeWashingtonPost(String date) {
         String[] dateParts = date.split("/");
         for(int i = 0; i < 2; i++) {
             if(Integer.parseInt(dateParts[i]) < 10) {
@@ -172,6 +177,88 @@ public class Scraper {
             System.out.println("Doc download failed!");
         }
 
+        return new Board();
+    }
+
+    public static Object checkedGet(JSONObject jsonObj, String key) {
+        return (jsonObj.containsKey(key)) ? (jsonObj.get(key)) : null;
+    }
+    public static Board loadPuzzleFromJSON(String path) {
+        JSONParser jsonParser = new JSONParser();
+        try {
+            FileReader f = new FileReader(path);
+            JSONObject puzzleData = (JSONObject)jsonParser.parse(f);
+            f.close();
+
+            Board b = new Board();
+
+            b.setSize(Integer.parseInt(String.valueOf(checkedGet(puzzleData, "size"))));
+            b.setDate((String)checkedGet(puzzleData, "date"));
+            b.setWeekday((String)checkedGet(puzzleData, "weekday")); //Checked gets for futureproofing
+            b.setTitle((String)checkedGet(puzzleData, "title"));
+
+            Object[] clueSet = new Object[]{puzzleData.get("down_clues"), puzzleData.get("across_clues")};
+            int count = 0;
+
+            for(Object obj : clueSet) {
+                if (obj != null) {
+                    for(Object o : (JSONArray)obj) {
+                        Clue c = new Clue();
+                        JSONObject clue = (JSONObject)o;
+
+                        c.setMarker(String.valueOf(checkedGet(clue, "marker")));
+                        c.setQuestion((String)checkedGet(clue, "question"));
+                        c.setAnswer((String)checkedGet(clue, "answer"));
+
+                        if(count == 0) {
+                            c.setDirection(Clue.Direction.DOWN);
+                            b.addDownClue(c);
+                        } else {
+                            c.setDirection(Clue.Direction.ACROSS);
+                            b.addAcrossClue(c);
+                        }
+                    }
+                }
+                count++;
+            }
+
+            JSONArray tiles = (JSONArray)checkedGet(puzzleData, "board");
+            if (tiles != null) {
+                for(Object obj : tiles) {
+                    Tile t = new Tile();
+                    JSONObject tile = (JSONObject)obj;
+
+                    t.setRow(Integer.valueOf(String.valueOf(tile.get("row"))));
+                    t.setCol(Integer.valueOf(String.valueOf(tile.get("column"))));
+
+                    if(tile.containsKey("wall") || !(tile.containsKey("value") || tile.containsKey("letter"))){
+                        t.setWall(true);
+                    } else {
+                        if (tile.containsKey("marker")) t.setMarker((String.valueOf(tile.get("marker"))));
+                        if (tile.containsKey("value")) t.setCorrectValue((String) tile.get("value"));
+                        if (tile.containsKey("rebus")) {
+                            t.setRebus(true);
+                            b.setRebus(true);
+                        }
+                        if (tile.containsKey("shaded")) t.setShaded(true);
+                        if (tile.containsKey("circled")) t.setCircled(true);
+
+                    }
+                    b.setTile(t.getRow() % b.getSize(), t.getCol() % b.getSize(), t); //mod right now is because I messed up my outputting
+                }
+            }
+
+            return b;
+        } catch(ParseException e) {
+            System.out.println("Board failed to load due to JSON parse fail!");
+            e.printStackTrace();
+        } catch(IOException e) {
+            System.out.println("Board failed to load due to file read exception!");
+            e.printStackTrace();
+        } catch(NullPointerException e) {
+            System.out.println("Board failed to load due to NullPointerException");
+            e.printStackTrace();
+        }
         return new Board();
     }
 }
